@@ -1,8 +1,8 @@
 @echo off
 setlocal
 
-set PROJECT_ROOT=%~dp0
-set BUILD_DIR=%PROJECT_ROOT%build
+for %%i in ("%~dp0.") do set PROJECT_ROOT=%%~fi
+set BUILD_DIR=%PROJECT_ROOT%\build
 
 :: Default config is Debug
 set CONFIG=%~1
