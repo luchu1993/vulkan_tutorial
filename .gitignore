@@ -1,0 +1,7 @@
+build/
+bin/
+thirdparty/
+*.user
+.vs/
+.idea/
+.claude/
