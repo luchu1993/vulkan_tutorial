@@ -5,3 +5,6 @@ thirdparty/
 .vs/
 .idea/
 .claude/
+
+# Compiled shaders
+shaders/*.spv
