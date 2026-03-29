@@ -1,0 +1,19 @@
+{
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.generator": "Ninja",
+    "cmake.configureOnOpen": true,
+    "cmake.buildBeforeRun": true,
+    "cmake.parallelJobs": 0,
+
+    "files.associations": {
+        "*.slang": "hlsl",
+        "*.h": "cpp"
+    },
+
+    "editor.formatOnSave": false,
+    "C_Cpp.formatting": "clangFormat",
+
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    }
+}

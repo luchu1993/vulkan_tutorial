@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "name": "Win32 (MSVC)",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/thirdparty/glfw/include",
+                "${workspaceFolder}/thirdparty/glm/include",
+                "${workspaceFolder}/thirdparty/tinyobjloader/include",
+                "${env:VULKAN_SDK}/Include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "VULKAN_HPP_NO_STRUCT_CONSTRUCTORS",
+                "VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS"
+            ],
+            "windowsSdkVersion": "10.0.22000.0",
+            "compilerPath": "cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "windows-msvc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}
