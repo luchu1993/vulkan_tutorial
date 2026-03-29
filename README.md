@@ -4,9 +4,11 @@
 
 ## 特性
 
-- Vulkan 1.3 + Dynamic Rendering + Extended Dynamic State
+- Vulkan 1.3 + Dynamic Rendering + Extended Dynamic State + Synchronization2
 - Vulkan-Hpp RAII (`vulkan_raii.hpp`)
 - Validation Layer 支持（Debug 模式自动启用）
+- Slang 着色器编译（CMake 自动调用 `slangc`）
+- Multi-frames-in-flight（`MAX_FRAMES_IN_FLIGHT = 2`）
 - C++20
 
 ## 当前进度
@@ -21,12 +23,17 @@
 - [x] Window Surface
 - [x] Swap Chain
 - [x] Image Views
-- [ ] Graphics Pipeline
+
+**Drawing a Triangle — Drawing**
+
+- [x] Graphics Pipeline（Dynamic Rendering，Slang 着色器）
+- [x] Command Buffers（Multi-frames-in-flight，fence/semaphore 同步）
+- [x] Hello Triangle
 - [ ] ...
 
 ## 依赖
 
-- [Vulkan SDK](https://vulkan.lunarg.com/)（需预先安装）
+- [Vulkan SDK](https://vulkan.lunarg.com/)（需预先安装，含 `slangc`）
 - [GLFW 3.4](https://github.com/glfw/glfw)
 - [GLM 1.0.1](https://github.com/g-truc/glm)
 - [tinyobjloader v2.0.0rc13](https://github.com/tinyobjloader/tinyobjloader)
@@ -57,6 +64,7 @@ clean.bat
 
 ```
 ├── src/              # 源代码
+├── shaders/          # Slang 着色器源码（*.spv 构建时生成，不纳入版本管理）
 ├── include/          # 头文件
 ├── doc/              # 教程笔记（Markdown）
 ├── thirdparty/       # 第三方库（自动生成）
