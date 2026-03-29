@@ -29,6 +29,7 @@
 - [x] Graphics Pipeline（Dynamic Rendering，Slang 着色器）
 - [x] Command Buffers（Multi-frames-in-flight，fence/semaphore 同步）
 - [x] Hello Triangle
+- [x] Swap Chain Recreation（窗口大小变化处理）
 - [ ] ...
 
 ## 依赖
