@@ -18,9 +18,9 @@
 - [x] Validation Layers / Debug Messenger
 - [x] Physical Device 选择（Vulkan 1.3、Dynamic Rendering、Extended Dynamic State 特性检查）
 - [x] Logical Device + Graphics Queue
-- [ ] Window Surface
-- [ ] Swap Chain
-- [ ] Image Views
+- [x] Window Surface
+- [x] Swap Chain
+- [x] Image Views
 - [ ] Graphics Pipeline
 - [ ] ...
 
