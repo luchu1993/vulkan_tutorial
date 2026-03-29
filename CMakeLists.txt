@@ -19,7 +19,10 @@ target_include_directories(vulkan_tutorial PRIVATE ${CMAKE_SOURCE_DIR}/include)
 # ---------- Vulkan ----------
 find_package(Vulkan REQUIRED)
 target_link_libraries(vulkan_tutorial PRIVATE Vulkan::Vulkan)
-target_compile_definitions(vulkan_tutorial PRIVATE VULKAN_HPP_NO_STRUCT_CONSTRUCTORS)
+target_compile_definitions(vulkan_tutorial PRIVATE
+    VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
+    VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS
+)
 
 # ---------- GLFW (pre-built in thirdparty) ----------
 set(GLFW_DIR ${CMAKE_SOURCE_DIR}/thirdparty/glfw)

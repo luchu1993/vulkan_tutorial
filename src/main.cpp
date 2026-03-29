@@ -40,8 +40,17 @@ private:
     {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
         window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+        glfwSetWindowUserPointer(window, this);
+        glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+    }
+
+    static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
+    {
+        auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+        app->framebufferResized = true;
     }
 
     void initVulkan()
@@ -71,6 +80,7 @@ private:
 
     void cleanUp()
     {
+        device.waitIdle();
         glfwDestroyWindow(window);
         glfwTerminate();
     }
@@ -88,9 +98,22 @@ private:
         {
             throw std::runtime_error("failed to wait for fence!");
         }
-        device.resetFences(*inFlightFences[frameIndex]);
 
         auto [result, imageIndex] = swapChain.acquireNextImage(UINT64_MAX, *presentCompleteSemaphores[frameIndex], nullptr);
+
+        // Due to VULKAN_HPP_HANDLE_ERROR_OUT_OF_DATE_AS_SUCCESS being defined, eErrorOutOfDateKHR can be checked as a result
+        // here and does not need to be caught by an exception.
+        if (result == vk::Result::eErrorOutOfDateKHR)
+        {
+            recreateSwapChain();
+            return;
+        }
+        if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
+        {
+            throw std::runtime_error("failed to acquire swap chain image!");
+        }
+
+        device.resetFences(*inFlightFences[frameIndex]);
 
         commandBuffers[frameIndex].reset();
         recordCommandBuffer(imageIndex);
@@ -116,9 +139,10 @@ private:
             .pResults           = nullptr,
         };
         result = queue.presentKHR(presentInfoKHR);
-        if (result == vk::Result::eSuboptimalKHR)
+        if (result == vk::Result::eSuboptimalKHR || result == vk::Result::eErrorOutOfDateKHR || framebufferResized)
         {
-            std::cout << "vk::Queue::presentKHR returned vk::Result::eSuboptimalKHR!\n";
+            framebufferResized = false;
+            recreateSwapChain();
         }
 
         frameIndex = (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -156,10 +180,16 @@ private:
 
         commandBuffer.beginRendering(renderingInfo);
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, graphicsPipeline);
-        commandBuffer.setViewport(0, vk::Viewport(0.0f, 0.0f,
-            static_cast<float>(swapChainExtent.width),
-            static_cast<float>(swapChainExtent.height)));
-        commandBuffer.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), swapChainExtent));
+        commandBuffer.setViewport(0, vk::Viewport{
+            .x      = 0.0f,
+            .y      = 0.0f,
+            .width  = static_cast<float>(swapChainExtent.width),
+            .height = static_cast<float>(swapChainExtent.height),
+        });
+        commandBuffer.setScissor(0, vk::Rect2D{
+            .offset = {.x = 0, .y = 0},
+            .extent = swapChainExtent,
+        });
         commandBuffer.draw(3, 1, 0, 0);
         commandBuffer.endRendering();
 
@@ -302,16 +332,16 @@ private:
     // Device
     // -------------------------------------------------------------------------
 
-    bool isDeviceSuitable(vk::raii::PhysicalDevice const& physicalDevice)
+    bool isDeviceSuitable(vk::raii::PhysicalDevice const& device)
     {
-        bool supportsVulkan1_3 = physicalDevice.getProperties().apiVersion >= vk::ApiVersion13;
+        bool supportsVulkan1_3 = device.getProperties().apiVersion >= vk::ApiVersion13;
 
-        auto queueFamilies   = physicalDevice.getQueueFamilyProperties();
+        auto queueFamilies   = device.getQueueFamilyProperties();
         bool supportsGraphics = std::ranges::any_of(queueFamilies, [](auto const& qfp) {
             return !!(qfp.queueFlags & vk::QueueFlagBits::eGraphics);
         });
 
-        auto availableDeviceExtensions    = physicalDevice.enumerateDeviceExtensionProperties();
+        auto availableDeviceExtensions    = device.enumerateDeviceExtensionProperties();
         bool supportsAllRequiredExtensions = std::ranges::all_of(requiredDeviceExtensions,
             [&availableDeviceExtensions](auto const& required) {
                 return std::ranges::any_of(availableDeviceExtensions, [required](auto const& available) {
@@ -319,7 +349,7 @@ private:
                 });
             });
 
-        auto features = physicalDevice.getFeatures2<
+        auto features = device.getFeatures2<
             vk::PhysicalDeviceFeatures2,
             vk::PhysicalDeviceVulkan11Features,
             vk::PhysicalDeviceVulkan13Features,
@@ -469,6 +499,29 @@ private:
 
         swapChain       = vk::raii::SwapchainKHR(device, createInfo);
         swapChainImages = swapChain.getImages();
+    }
+
+    void cleanupSwapChain()
+    {
+        swapChainImageViews.clear();
+        swapChain = nullptr;
+    }
+
+    void recreateSwapChain()
+    {
+        int width = 0, height = 0;
+        glfwGetFramebufferSize(window, &width, &height);
+        while (width == 0 || height == 0)
+        {
+            glfwGetFramebufferSize(window, &width, &height);
+            glfwWaitEvents();
+        }
+
+        device.waitIdle();
+
+        cleanupSwapChain();
+        createSwapChain();
+        createImageViews();
     }
 
     void createImageViews()
@@ -649,6 +702,7 @@ private:
     std::vector<vk::raii::Semaphore>     renderFinishedSemaphores;
     std::vector<vk::raii::Fence>         inFlightFences;
     uint32_t                             frameIndex                = 0;
+    bool                                 framebufferResized        = false;
     std::vector<const char*>             requiredDeviceExtensions  = {vk::KHRSwapchainExtensionName};
 };
 
